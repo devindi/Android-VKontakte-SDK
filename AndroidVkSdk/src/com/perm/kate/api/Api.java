@@ -2293,6 +2293,40 @@ public class Api {
         int response = root.optInt("response");
         return response==1;
     }
+
+    /**
+     * Upload image to user wall. Method requires httpmime library to create POST with image
+     * you can download it here:http://hc.apache.org/downloads.cgi
+     * direct link: http://mirrors.besplatnyeprogrammy.ru/apache//httpcomponents/httpclient/binary/httpcomponents-client-4.2.3-bin.zip
+     * @param filePath absolutely path to image
+     * @param userID
+     * @return uploaded photo data (photo id and owner id)
+     */
+    public Photo uploadPhotoToWall(String filePath, long userID){
+        try {
+            String uploadServer=photosGetWallUploadServer(userID, null);
+            HttpClient client=new DefaultHttpClient();
+            HttpPost httpPost=new HttpPost(uploadServer);
+            MultipartEntity albumArtEntity = new MultipartEntity();
+            albumArtEntity.addPart("photo", new FileBody(new File(filePath)));
+            httpPost.setEntity(albumArtEntity);
+            HttpResponse response=client.execute(httpPost);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+            StringBuilder builder = new StringBuilder();
+            for (String line; (line = reader.readLine()) != null;) {
+                builder.append(line).append("\n");
+            }
+            JSONObject photoObject = new JSONObject(builder.toString());
+            return saveWallPhoto(photoObject.get("server").toString(), photoObject.get("photo").toString(), photoObject.get("hash").toString(), userID, null).get(0);
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (JSONException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (KException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return null;
+    }
     
     //gets status of broadcasting user current audio to his page
     public boolean audioGetBroadcast() throws MalformedURLException, IOException, JSONException, KException {
