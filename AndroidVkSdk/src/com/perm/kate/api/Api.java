@@ -1,14 +1,19 @@
 package com.perm.kate.api;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.zip.GZIPInputStream;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -2343,5 +2348,13 @@ public class Api {
         JSONObject root = sendRequest(params);
         JSONObject response = root.optJSONObject("response");
         return response.optInt("enabled")==1;
+    }
+
+    public User getUserById(long ID) throws KException, IOException, JSONException {
+        Params params = new Params("users.get");
+        params.put("uids", ID);
+        JSONObject root = sendRequest(params);
+        JSONArray array=root.optJSONArray("response");
+        return User.parseUsers(array).get(0);
     }
 }
